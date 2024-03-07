@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-contract vote{
+contract voting{
     address electiondirector;
     address public winnerCandidate;
 
@@ -56,7 +56,7 @@ contract vote{
     }
 
     function candidateVerification(address _person) public view returns(bool){
-        for(uint i=0;i<nextCandidateId;i++){
+        for(uint i=0;i<=nextCandidateId;i++){
             if(candidateDetail[i].candidiateAddress==_person){
                 return false;
             }
@@ -64,12 +64,46 @@ contract vote{
         return true;
     }
 
+    function candidateList() public view returns (candidate[] memory){
+        candidate[]memory array= new candidate[](nextCandidateId-1);
+        for(uint i=1;i<nextCandidateId;i++){
+            array[i-1]=candidateDetail[i];
+        }
+        return array;
+    }
 
+    function voterRegistration(string calldata _name, string calldata _party, uint _age, string calldata _gender) external{
+        require(_age>18, "andidate must be over 18");
+        require(voterVerification(msg.sender),"candidates registered already");
+        voterDetail[nextVoterId]= voter(_name, _age, nextVoterId,_gender,0, msg.sender);
+        nextVoterId++;
+    }
+    function voterVerification(address _person) public view returns(bool){
+        for(uint i=0;i<=nextVoterId;i++){
+            if(voterDetail[i].voterAddress==_person){
+                return false;
+            }
+        }
+        return true;
+    }
 
+    function voterList() public view returns (voter[] memory){
+        voter[]memory array= new voter[](nextVoterId-1);
+        for(uint i=1;i<nextVoterId;i++){
+            array[i-1]=voterDetail[i];
+        }
+        return array;
+    }
 
-
-
-
+    function vote(uint _voterId, uint _id) external{
+        require(voterDetail[_voterId].VoterCandidateId==0, "you already voted, done");
+        require(voterDetail[_voterId].voterAddress==msg.sender, "not your wallet");
+        require(startTime!=0, "voting not started");
+        require(nextCandidateId==3,"candiate has not registered");
+        voterDetail[_voterId].VoterCandidateId= _id;
+        candidateDetail[_id].votes++;
+        
+    }
 
 
 }
